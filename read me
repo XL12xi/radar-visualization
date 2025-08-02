@@ -1,0 +1,15 @@
+文件名	说明
+package.json	定义项目名称、Electron 版本、启动脚本。通过 npm install 和 npm start 启动项目。
+main.js	Electron 的主进程脚本。创建桌面窗口，并通过 net 模块监听 TCP 端口（如 9000），实时接收数据后发送给前端页面。
+preload.js	在 Electron 中作为“中间桥”，允许前端使用 window.tcpAPI.onData(...) 安全地接收主进程发来的 TCP 数据。
+index.html	前端的网页内容，用来显示“雷达数据”内容（文本或图表）。你可以根据后续需求添加图表、地图等组件。
+renderer.js	前端脚本文件，监听来自 preload.js 的数据事件，并将接收到的 TCP 内容动态插入页面。
+
+板块 B：通过 TCP 接收数据，并传送给前端
+🧩 本板块分为 3 个子步骤：
+步骤	内容
+B1	Node.js 后台监听 TCP 端口并接收数据
+B2	将接收到的数据通过 IPC 通道传给渲染进程（前端）
+B3	前端接收数据并显示在网页中
+
+然后你可以用 telnet 或其他 TCP 客户端（例如自写代码或工具）向 127.0.0.1:4000 发送一段数据，看看是否能被 console.log 打印出来。
