@@ -1,8 +1,9 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const net = require('net');
+const { saveRadarData, getAllUsers, addUser } = require('./src/db/models');
 
-let win; // 👈 全局变量，供 TCP 使用
+let win; // 全局变量，供 TCP 使用
 
 function createWindow() {
   win = new BrowserWindow({
@@ -13,14 +14,12 @@ function createWindow() {
     },
   });
 
-  win.loadFile('index.html');
+  win.loadFile(path.join(__dirname, 'build/index.html')); // 只在这里写一次
 }
 
 // 等待 app 准备好，再创建窗口和启动 TCP 服务
 app.whenReady().then(() => {
   createWindow();
-
-  // 启动 TCP Server
   startTCPServer();
 
   app.on('activate', () => {
@@ -47,8 +46,10 @@ function startTCPServer() {
       const message = data.toString();
       console.log('📨 接收到数据:', message);
 
+      saveRadarData(message); // 保存到数据库
+
       if (win && win.webContents) {
-        win.webContents.send('tcp-data', message); // 👈 向前端发送数据
+        win.webContents.send('tcp-data', message); // 向前端发送数据
       }
     });
 
@@ -65,3 +66,8 @@ function startTCPServer() {
     console.log('🚀 TCP 服务器已启动，监听端口 4000');
   });
 }
+
+/*---------------------------------------------------------*/
+// 用户相关 IPC 处理
+ipcMain.handle('get-all-users', () => getAllUsers());
+ipcMain.handle('add-user', (event, name, role) => addUser(name, role));
